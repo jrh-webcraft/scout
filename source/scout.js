@@ -4,7 +4,7 @@ const wait = require('waait')
 
 async function ensureCount(count, target, options = {}) {
   function message(text) {
-    return `[scout: ${ target.name }] ${ text }`
+    return `[scout: ${ target.name || 'unnamed' }] ${ text }`
   }
 
   attempt = options.attempt || 0
@@ -15,7 +15,10 @@ async function ensureCount(count, target, options = {}) {
   const result = await target() || []
 
   if (result.length === count) {
-    console.log(message(`Found all ${ count } records.`))
+    if (process.env.monitor === 'true') {
+      console.log(message(`Found all ${ count } records.`))
+    }
+
     return result
   }
 
@@ -24,7 +27,9 @@ async function ensureCount(count, target, options = {}) {
   }
 
   if (attempt < retries) {
-    console.log(message(`Expected: ${ count } | Found: ${ result.length }`))
+    if (process.env.monitor === 'true') {
+      console.log(message(`Expected: ${ count } | Found: ${ result.length }`))
+    }
 
     await wait(delay)
     await ensureCount(count, target, { attempt, delay, retries })

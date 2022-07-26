@@ -19,29 +19,54 @@ describe('.ensureCount()', () => {
   })
 
   context('when the target function does not return the correct number of records', () => {
-    it('reports the status', async () => {
-      const clock = sinon.useFakeTimers()
+    context('when monitoring is enabled', () => {
+      beforeEach(() => process.env.monitor = 'true')
+      afterEach(() => delete process.env.monitor)
 
-      const target = stub()
-        .onCall(0).resolves([ 1 ])
-        .onCall(1).resolves([ 1, 2 ])
+      it('reports the status', async () => {
+        const clock = sinon.useFakeTimers()
 
-      ensureCount(2, target, { delay: 3 })
+        const target = stub()
+          .onCall(0).resolves([ 1 ])
+          .onCall(1).resolves([ 1, 2 ])
 
-      await clock.tickAsync(1)
+        ensureCount(2, target, { delay: 3 })
 
-      expect(console.log).to.have.been.calledOnce
-      expect(console.log.firstCall.args[0]).to.include(target.name)
-        .and.to.include('Expected: 2')
-        .and.to.include('Found: 1')
+        await clock.tickAsync(1)
 
-      await clock.tickAsync(2)
+        expect(console.log).to.have.been.calledOnce
+        expect(console.log.firstCall.args[0]).to.include(target.name)
+          .and.to.include('Expected: 2')
+          .and.to.include('Found: 1')
 
-      expect(console.log).to.have.been.calledTwice
-      expect(console.log.secondCall.args[0]).to.include(target.name)
-        .and.to.include('Found all 2')
+        await clock.tickAsync(2)
 
-      clock.restore()
+        expect(console.log).to.have.been.calledTwice
+        expect(console.log.secondCall.args[0]).to.include(target.name)
+          .and.to.include('Found all 2')
+
+        clock.restore()
+      })
+
+      it('uses a placeholder name for anonymous functions', async () => {
+        await ensureCount(2, () => [ 1, 2 ])
+
+        expect(console.log).to.have.been.calledOnce
+        expect(console.log.firstCall.args[0]).to.include('unnamed')
+      })
+    })
+
+    context('when monitoring is not enabled', () => {
+      beforeEach(() => {
+        process.env.monitor = false
+      })
+
+      it('does not report the status', async () => {
+        const target = stub().resolves([ 1, 2, 3 ])
+        const result = await ensureCount(3, target)
+
+        expect(console.log).not.to.have.been.called
+      })
     })
 
     it('retries up to the maximum retries', async () => {

@@ -1,6 +1,6 @@
 {
   "name": "@jrh/scout",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Tests the behavior of Node.js functions which reach beyond your application's boundaries.",
   "main": "source/scout.js",
   "repository": {

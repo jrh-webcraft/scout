@@ -6,6 +6,10 @@ Test the behavior of Node.js functions which reach beyond your application's bou
 
 `npm install @jrh/scout`
 
+## Logging
+
+`scout` will log status updates if the environment variable `monitor` is set to `true`.
+
 ## Functions
 
 ### `.ensureCount()`
